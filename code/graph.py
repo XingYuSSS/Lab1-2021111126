@@ -119,7 +119,7 @@ class Graph:
     def random_walk(self):
         v = random.choice(list(self.graph_dict.keys()))
         path = []
-        while len(path)<2 or not (path[-1], v) in zip(path[:-1], path[1]):
+        while len(path)<2 or not (path[-1], v) in zip(path[:-1], path[1:]):
             path.append(v)
             if len(self.graph_dict[v].keys()) == 0:
                 break
