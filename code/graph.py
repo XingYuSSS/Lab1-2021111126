@@ -1,4 +1,6 @@
 #B2
+#B1
+#c4
 import os
 import re
 import random
