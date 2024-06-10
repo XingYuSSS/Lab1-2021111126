@@ -1,3 +1,9 @@
+"""
+basic graph and word graph
+"""
+# B2
+# B1
+# c4
 import os
 import re
 import random
@@ -5,6 +11,10 @@ import graphviz
 
 
 class Graph:
+    """
+    basic graph
+    """
+
     def __init__(self) -> None:
         self.graph_dict = {}
 
@@ -18,30 +28,45 @@ class Graph:
         return graph_str
 
     def add_vertex(self, name: str):
-        if name not in self.graph_dict.keys():
+        """
+        add a vertex to graph
+        """
+        if name not in self.graph_dict:
             self.graph_dict[name] = {}
 
     def add_edge(self, from_name: str, to_name: str):
+        """
+        add a edge to graph
+        """
         self.add_vertex(from_name)
         self.add_vertex(to_name)
-        if to_name not in self.graph_dict[from_name].keys():
+        if to_name not in self.graph_dict[from_name]:
             self.graph_dict[from_name][to_name] = 0
         self.graph_dict[from_name][to_name] += 1
 
     def get_vertexs(self):
+        """
+        get all vertexs in graph
+        """
         return self.graph_dict.keys()
-    
+
     def get_edges(self):
+        """
+        get all edges in graph
+        """
         edges = []
         for (k, v) in self.graph_dict.items():
             for (name, weight) in v.items():
                 edges.append((k, name, weight))
         return edges
-    
+
     def get_bridge(self, v1, v2):
-        if v1 not in self.graph_dict.keys():
+        """
+        get all bridge between v1 and v2
+        """
+        if v1 not in self.graph_dict:
             raise KeyError('not exist vertex', v1)
-        if v2 not in self.graph_dict.keys():
+        if v2 not in self.graph_dict:
             raise KeyError('not exist vertex', v2)
         bridge = []
         for mid in self.graph_dict[v1].keys():
@@ -54,16 +79,16 @@ class Graph:
     def _dijkstra(self, from_v):
         dijkstra_data = {
             v: {
-                'visited': False, 
-                'distance': float('inf'), 
+                'visited': False,
+                'distance': float('inf'),
                 'prev': None
-            } for v in self.graph_dict.keys()
+            } for v in self.graph_dict
         }
         dijkstra_data[from_v]['distance'] = 0
         while True:
             lowest_dis = float('inf')
             lowest_v = None
-            for v in self.graph_dict.keys():
+            for v in self.graph_dict:
                 if dijkstra_data[v]['visited']:
                     continue
                 if dijkstra_data[v]['distance'] < lowest_dis:
@@ -72,7 +97,7 @@ class Graph:
             if lowest_v is None:
                 break
             dijkstra_data[lowest_v]['visited'] = True
-            if all([d['visited'] for d in dijkstra_data.values()]):
+            if all(d['visited'] for d in dijkstra_data.values()):
                 break
             for v, weight in self.graph_dict[lowest_v].items():
                 if dijkstra_data[v]['visited']:
@@ -81,11 +106,15 @@ class Graph:
                     dijkstra_data[v]['distance'] = lowest_dis + weight
                     dijkstra_data[v]['prev'] = lowest_v
         return dijkstra_data
-    
+
     def shortest_path(self, v1, v2):
-        if v1 not in self.graph_dict.keys():
+        """
+        caculate shorest path from v1 to v2 using dijkstra
+        return distance and path
+        """
+        if v1 not in self.graph_dict:
             raise KeyError('not exist vertex', v1)
-        if v2 not in self.graph_dict.keys():
+        if v2 not in self.graph_dict:
             raise KeyError('not exist vertex', v2)
         dijk = self._dijkstra(v1)
         prev = dijk[v2]['prev']
@@ -95,18 +124,22 @@ class Graph:
             prev = dijk[prev]['prev']
         path.reverse()
         return dijk[v2]['distance'], path
-    
+
     def shortest_all(self, v):
-        if v not in self.graph_dict.keys():
+        """
+        caculate shorest path from v to all vertexs using dijkstra
+        return a dict with distance and path, use like ret[<vertex>]['distance' or 'path']
+        """
+        if v not in self.graph_dict:
             raise KeyError('not exist vertex', v)
         dijk = self._dijkstra(v)
         shortest = {
             v2: {
-                'distance': dijk[v2]['distance'], 
+                'distance': dijk[v2]['distance'],
                 'path': None
-            } for v2 in self.graph_dict.keys()
+            } for v2 in self.graph_dict
         }
-        for v2 in self.graph_dict.keys():
+        for v2 in self.graph_dict:
             prev = dijk[v2]['prev']
             path = [v2]
             while prev is not None:
@@ -117,9 +150,13 @@ class Graph:
         return shortest
 
     def random_walk(self):
+        """
+        begin a random walk
+        return the path
+        """
         v = random.choice(list(self.graph_dict.keys()))
         path = []
-        while len(path)<2 or not (path[-1], v) in zip(path[:-1], path[1:]):
+        while len(path) < 2 or (path[-1], v) not in zip(path[:-1], path[1:]):
             path.append(v)
             if len(self.graph_dict[v].keys()) == 0:
                 break
@@ -128,17 +165,23 @@ class Graph:
 
 
 class WordGraph:
+    """
+    a graph using words as vertex name
+    """
     def __init__(self, txt: str) -> None:
         self.color_list = ['blue', 'green', 'purple', 'red']
         self.graph = Graph()
         words = re.findall('[a-z]+', txt.lower())
         for i in range(len(words) - 1):
-            self.graph.add_edge(words[i], words[i+1])
+            self.graph.add_edge(words[i], words[i + 1])
 
     def __str__(self) -> str:
         return self.graph.__str__()
 
     def showDirectedGraph(self):
+        """
+        draw the graph and save in ./output/graph.jpg
+        """
         draw_graph = graphviz.Digraph()
         draw_graph.graph_attr['dpi'] = '350'
         for v in self.graph.get_vertexs():
@@ -148,18 +191,24 @@ class WordGraph:
         draw_graph.render(os.path.join('output', 'graph'), format='jpg', cleanup=True)
 
     def queryBridgeWords(self, word1, word2):
+        """
+        get all bridge words between word1 and word2
+        """
         try:
             bridge_words = self.graph.get_bridge(word1, word2)
         except KeyError as e:
             return f'No {e.args[-1]} in the graph!'
         if len(bridge_words) == 0:
             return f'No bridge words from \"{word1}\" to \"{word2}\"!'
-        elif len(bridge_words) == 1:
+        if len(bridge_words) == 1:
             return f'The bridge words from \"{word1}\" to \"{word2}\" is: {bridge_words[0]}.'
-        else:
-            return f'The bridge words from \"{word1}\" to \"{word2}\" are: {", ".join(bridge_words[:-1])} and {bridge_words[-1]}.'
+        return f'The bridge words from \"{word1}\" to \"{word2}\" \
+            are: {", ".join(bridge_words[:-1])} and {bridge_words[-1]}.'
 
     def generateNewText(self, inputText):
+        """
+        get a new text with insert bridge words in inputText
+        """
         if inputText is None:
             return 'No input text!'
         words = re.findall('[a-z]+', inputText.lower())
@@ -167,14 +216,19 @@ class WordGraph:
         for idx, (word1, word2) in enumerate(zip(words[:-1], words[1:])):
             try:
                 bridge_words = self.graph.get_bridge(word1, word2)
-            except KeyError as e:
+            except KeyError:
                 continue
             if len(bridge_words) != 0:
-                words.insert(idx+added+1, random.choice(bridge_words))
-                added+=1
+                words.insert(idx + added + 1, random.choice(bridge_words))
+                added += 1
         return ' '.join(words)
 
     def calcShortestPath(self, word1, word2):
+        """
+        caculate shorest path from word1 to word2 using dijkstra
+        draw the graph and save in ./output/shortest_path.jpg
+        return a string about distance and path
+        """
         try:
             distance, path = self.graph.shortest_path(word1, word2)
         except KeyError as e:
@@ -186,21 +240,26 @@ class WordGraph:
             draw_graph.node(v)
         for (start, end, weight) in self.graph.get_edges():
             if (start, end) in zip(path[:-1], path[1:]):
-                draw_graph.edge(start, end, str(weight), color = color)
+                draw_graph.edge(start, end, str(weight), color=color)
             else:
                 draw_graph.edge(start, end, str(weight))
         draw_graph.render(os.path.join('output', 'shortest_path'), format='jpg', cleanup=True)
         if distance == float('inf'):
             return f'\"{word1}\" cannot goto \"{word2}\"'
         return f'distance: {distance}, path: {"->".join(path)}'
-    
+
     def calcShortestPathAll(self, word):
+        """
+        caculate shorest path from word to all words using dijkstra
+        draw the graph and save in ./output/shortest_path_{idx}.jpg, idx from 0 to len(path)
+        return a string about distance and path
+        """
         try:
             short_data = self.graph.shortest_all(word)
         except KeyError as e:
             return f'not exist word \"{e.args[-1]}\"'
         out_txt = ''
-        for id, w2 in enumerate(self.graph.get_vertexs()):
+        for idx, w2 in enumerate(self.graph.get_vertexs()):
             if short_data[w2]['distance'] == float('inf'):
                 continue
             draw_graph = graphviz.Digraph()
@@ -210,29 +269,38 @@ class WordGraph:
                 draw_graph.node(v)
             for (start, end, weight) in self.graph.get_edges():
                 if (start, end) in zip(short_data[w2]['path'][:-1], short_data[w2]['path'][1:]):
-                    draw_graph.edge(start, end, str(weight), color = color)
+                    draw_graph.edge(start, end, str(weight), color=color)
                 else:
                     draw_graph.edge(start, end, str(weight))
-            draw_graph.render(os.path.join('output', f'shortest_path_{id}'), format='jpg', cleanup=True)
-            out_txt += f'{word} to {w2}: \n    distance: {short_data[w2]["distance"]}, path: {"->".join(short_data[w2]["path"])}\n'
+            draw_graph.render(
+                os.path.join('output', f'shortest_path_{idx}'),
+                format='jpg',
+                cleanup=True
+            )
+            out_txt += f'{word} to {w2}: \n    distance: {short_data[w2]["distance"]},\
+                  path: {"->".join(short_data[w2]["path"])}\n'
         return out_txt
 
     def randomWalk(self):
+        """
+        begin a random walk
+        return the walk result and save in ./output/walk.txt
+        """
         path = self.graph.random_walk()
         txt = ' '.join(path)
-        with open(os.path.join('output', 'walk.txt'), 'w+') as f:
+        with open(os.path.join('output', 'walk.txt'), 'w+', encoding='utf-8') as f:
             f.write(txt)
         return txt
 
 
 if __name__ == "__main__":
     # string = 'To explore strange new worlds,\nTo seek out new life and new civilizations'
-    string = 'a to b a from b a go b a back b c d e'
-    g=WordGraph(string)
+    STRING = 'a to b a from b a go b a back b c d e'
+    g = WordGraph(STRING)
     print(g)
     g.showDirectedGraph()
     print(g.queryBridgeWords('a', 'b'))
     print(g.generateNewText('a b a b a b a b'))
-    print(g.calcShortestPath('c','e'))
+    print(g.calcShortestPath('c', 'e'))
     print(g.calcShortestPathAll('d'))
     print(g.randomWalk())
