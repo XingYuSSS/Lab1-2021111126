@@ -203,7 +203,7 @@ class WordGraph:
         if len(bridge_words) == 1:
             return f'The bridge words from \"{word1}\" to \"{word2}\" is: {bridge_words[0]}.'
         return f'The bridge words from \"{word1}\" to \"{word2}\" \
-            are: {", ".join(bridge_words[:-1])} and {bridge_words[-1]}.'
+are: {", ".join(bridge_words[:-1])} and {bridge_words[-1]}.'
 
     def generateNewText(self, inputText):
         """
